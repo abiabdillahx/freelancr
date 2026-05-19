@@ -1,4 +1,4 @@
-# Freelancr 🚀
+# Freelancr
 > Marketplace jasa freelance untuk mahasiswa - temukan talent, posting jasa, dan berkolaborasi di dalam ekosistem kampus.
 
 ---
@@ -160,7 +160,7 @@ Semua request dari client melewati API Gateway di prefix `/api/gateway/` yang be
 
 ---
 
-## 🚀 Cara Menjalankan
+## 👾 Cara Menjalankan
 
 ### Requirements
 - PHP >= 8.2
