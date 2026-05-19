@@ -15,7 +15,7 @@ Proyek ini dikembangkan sebagai tugas akhir mata kuliah dengan mengintegrasikan 
 
 | Nama | NIM | Peran |
 |------|-----|-------|
-| [Nama 1] | [NIM] | Auth, API Gateway, Dokumentasi Swagger |
+| Ahmad Thoriq Hafidzurrohman | 245150701111026 | Auth, API Gateway, Dokumentasi Swagger |
 | [Nama 2] | [NIM] | Modul Jasa & Kategori, Imgbb Integration |
 | Muhammad Kensya Kussyahputra Hidayatullah | 245150707111047 | Modul Order & Manajemen Status |
 | Muhammad Abi Abdillah | 245150701111027 | Modul Review, Currency API, Frontend |
