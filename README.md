@@ -1,4 +1,4 @@
-# Freelancr
+# Freelancr 🚀
 > Marketplace jasa freelance untuk mahasiswa - temukan talent, posting jasa, dan berkolaborasi di dalam ekosistem kampus.
 
 ---
@@ -16,7 +16,7 @@ Proyek ini dikembangkan sebagai tugas akhir mata kuliah dengan mengintegrasikan 
 | Nama | NIM | Peran |
 |------|-----|-------|
 | [Nama 1] | [NIM] | Auth, API Gateway, Dokumentasi Swagger |
-| [Nama 2] | [NIM] | Modul Jasa & Kategori, Cloudinary Integration |
+| [Nama 2] | [NIM] | Modul Jasa & Kategori, Imgbb Integration |
 | [Nama 3] | [NIM] | Modul Order & Manajemen Status |
 | [Nama 4] | [NIM] | Modul Review, Currency API, Frontend |
 
@@ -27,7 +27,7 @@ Proyek ini dikembangkan sebagai tugas akhir mata kuliah dengan mengintegrasikan 
 ### Untuk Freelancer
 - Registrasi & login dengan JWT
 - Posting, edit, dan hapus jasa
-- Upload foto portofolio via Cloudinary
+- Upload foto portofolio via Imgbb
 - Kelola dan update status order yang masuk
 - Lihat riwayat order dan rating
 
@@ -49,7 +49,7 @@ Proyek ini dikembangkan sebagai tugas akhir mata kuliah dengan mengintegrasikan 
 | API Gateway | Laravel (custom middleware routing) |
 | Frontend | HTML, CSS, JavaScript, Axios |
 | Dokumentasi API | Swagger / OpenAPI (L5-Swagger) |
-| File Upload | Cloudinary API |
+| File Upload | Imgbb API |
 | Konversi Mata Uang | Currency API (currencyapi.com) |
 
 ---
@@ -137,10 +137,11 @@ GET    /api/currency?amount=50000 → konversi IDR → USD
 
 ## 🌐 Integrasi API Pihak Ketiga
 
-### 1. Cloudinary
+### 1. Imgbb
 Digunakan untuk upload dan hosting gambar portofolio jasa freelancer.
-- Endpoint upload gambar terhubung ke Cloudinary via Laravel backend
+- Endpoint upload gambar terhubung ke Imgbb via Laravel backend
 - Mengembalikan URL gambar yang disimpan di database
+- Free tier: unlimited upload, gak perlu kartu kredit
 
 ### 2. Currency API (currencyapi.com)
 Digunakan untuk menampilkan harga jasa dalam USD di sisi client.
@@ -159,7 +160,7 @@ Semua request dari client melewati API Gateway di prefix `/api/gateway/` yang be
 
 ---
 
-## 👾 Cara Menjalankan
+## 🚀 Cara Menjalankan
 
 ### Requirements
 - PHP >= 8.2
@@ -171,7 +172,7 @@ Semua request dari client melewati API Gateway di prefix `/api/gateway/` yang be
 
 ```bash
 # Clone repository
-git clone https://github.com/abiabdillahx/freelancr.git
+git clone https://github.com/[username]/freelancr.git
 cd freelancr
 
 # Install dependencies
@@ -200,7 +201,7 @@ DB_PASSWORD=
 
 JWT_SECRET=your_jwt_secret
 
-CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+IMGBB_API_KEY=your_imgbb_api_key
 CURRENCY_API_KEY=your_currency_api_key
 ```
 
@@ -261,7 +262,7 @@ http://localhost:8000/api/documentation
 4. **Validasi gagal** → order tanpa note → response error JSON konsisten
 5. **Relasi data** → order terhubung ke jasa, review terhubung ke order
 6. **API 3rd party** → tampilkan harga jasa dalam USD via Currency API
-7. **Upload gambar** → freelancer upload foto portofolio via Cloudinary
+7. **Upload gambar** → freelancer upload foto portofolio via Imgbb
 
 ---
 
