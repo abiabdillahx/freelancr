@@ -17,7 +17,7 @@ Proyek ini dikembangkan sebagai tugas akhir mata kuliah dengan mengintegrasikan 
 |------|-----|-------|
 | [Nama 1] | [NIM] | Auth, API Gateway, Dokumentasi Swagger |
 | [Nama 2] | [NIM] | Modul Jasa & Kategori, Imgbb Integration |
-| [Nama 3] | [NIM] | Modul Order & Manajemen Status |
+| Muhammad Kensya Kussyahputra Hidayatullah | 245150707111047 | Modul Order & Manajemen Status |
 | [Nama 4] | [NIM] | Modul Review, Currency API, Frontend |
 
 ---
