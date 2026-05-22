@@ -11,10 +11,15 @@ return new class extends Migration {
             $table->id();
             $table->string("name");
             $table->string("email")->unique();
+            $table->timestamp("email_verified_at")->nullable();
+
             $table->string("password");
+            $table->rememberToken();
+
             $table->enum("role", ["freelancer", "client"])->default("client");
             $table->string("avatar")->nullable();
             $table->text("bio")->nullable();
+
             $table->timestamps();
         });
     }
