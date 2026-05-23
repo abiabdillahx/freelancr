@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
-    // GET /api/orders — list order milik user (client: order saya, freelancer: order masuk ke jasa saya)
+    // GET /api/orders — list order milik user
     public function index()
     {
         $user = Auth::user();
@@ -20,7 +20,7 @@ class OrderController extends Controller
                 ->latest()
                 ->get();
         } else {
-            // freelancer: ambil semua order yang service_id milik dia
+            // freelancer: order yang masuk ke jasa miliknya
             $orders = Order::with('service', 'client')
                 ->whereHas('service', function ($q) use ($user) {
                     $q->where('user_id', $user->id);
@@ -45,7 +45,7 @@ class OrderController extends Controller
 
         $service = Service::findOrFail($request->service_id);
 
-        // client tidak boleh order jasa milik sendiri (kalau client juga punya jasa)
+        // client tidak boleh order jasa milik sendiri
         if ($service->user_id === Auth::id()) {
             return response()->json([
                 'success' => false,
@@ -67,7 +67,7 @@ class OrderController extends Controller
         ], 201);
     }
 
-    // PUT /api/orders/{id}/status — update status order [freelancer only]
+    // PUT /api/orders/{id}/status — update status [freelancer only]
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -106,7 +106,7 @@ class OrderController extends Controller
         ]);
     }
 
-    // PUT /api/orders/{id}/cancel — cancel order [client only, hanya status pending]
+    // PUT /api/orders/{id}/cancel — cancel order [client only, hanya pending]
     public function cancel($id)
     {
         $order = Order::findOrFail($id);
