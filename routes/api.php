@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
@@ -17,6 +18,7 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::get('categories', [CategoryController::class, 'index']);
+Route::get('currency', [CurrencyController::class, 'convert']);
 Route::get('services',        [ServiceController::class, 'index']);
 Route::get('services/{id}',   [ServiceController::class, 'show']);
 Route::get('services/{id}/reviews', [ReviewController::class, 'byService']);
