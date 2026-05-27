@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -18,6 +19,7 @@ Route::prefix('auth')->group(function () {
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('services',        [ServiceController::class, 'index']);
 Route::get('services/{id}',   [ServiceController::class, 'show']);
+Route::get('services/{id}/reviews', [ReviewController::class, 'byService']);
 
 Route::middleware('auth:api')->group(function () {
 
@@ -39,5 +41,8 @@ Route::middleware('auth:api')->group(function () {
         ->middleware('role:freelancer');
 
     Route::put('orders/{id}/cancel', [OrderController::class, 'cancel'])
+        ->middleware('role:client');
+
+    Route::post('reviews', [ReviewController::class, 'store'])
         ->middleware('role:client');
 });
