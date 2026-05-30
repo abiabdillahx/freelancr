@@ -6,22 +6,30 @@ use App\Models\Order;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Attributes as OA;
 
 class OrderController extends Controller
 {
-    // GET /api/orders — list order milik user
+    #[OA\Get(
+        path: "/api/orders",
+        summary: "Daftar pesanan user",
+        tags: ["Orders"],
+        security: [["bearerAuth" => []]],
+        responses: [
+            new OA\Response(response: 200, description: "Daftar pesanan"),
+        ]
+    )]
     public function index()
     {
         $user = Auth::user();
 
         if ($user->role === 'client') {
-            $orders = Order::with('service')
+            $orders = Order::with(['service', 'review'])
                 ->where('client_id', $user->id)
                 ->latest()
                 ->get();
         } else {
-            // freelancer: order yang masuk ke jasa miliknya
-            $orders = Order::with('service', 'client')
+            $orders = Order::with(['service', 'client', 'review'])
                 ->whereHas('service', function ($q) use ($user) {
                     $q->where('user_id', $user->id);
                 })
@@ -35,7 +43,25 @@ class OrderController extends Controller
         ]);
     }
 
-    // POST /api/orders — buat order baru [client only]
+    #[OA\Post(
+        path: "/api/orders",
+        summary: "Buat pesanan baru",
+        tags: ["Orders"],
+        security: [["bearerAuth" => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["service_id", "note"],
+                properties: [
+                    new OA\Property(property: "service_id", type: "integer"),
+                    new OA\Property(property: "note", type: "string"),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "Pesanan berhasil dibuat"),
+        ]
+    )]
     public function store(Request $request)
     {
         $request->validate([
@@ -45,7 +71,6 @@ class OrderController extends Controller
 
         $service = Service::findOrFail($request->service_id);
 
-        // client tidak boleh order jasa milik sendiri
         if ($service->user_id === Auth::id()) {
             return response()->json([
                 'success' => false,
@@ -67,16 +92,24 @@ class OrderController extends Controller
         ], 201);
     }
 
-    // PUT /api/orders/{id}/status — update status [freelancer only]
-    public function updateStatus(Request $request, $id)
+    #[OA\Put(
+        path: "/api/orders/{order}/status",
+        summary: "Update status pesanan",
+        tags: ["Orders"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "order", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Status berhasil diupdate"),
+        ]
+    )]
+    public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
             'status' => 'required|in:in_progress,completed',
         ]);
 
-        $order = Order::with('service')->findOrFail($id);
-
-        // pastikan order ini milik jasa si freelancer
         if ($order->service->user_id !== Auth::id()) {
             return response()->json([
                 'success' => false,
@@ -84,7 +117,6 @@ class OrderController extends Controller
             ], 403);
         }
 
-        // validasi alur status: pending -> in_progress -> completed
         $allowed = [
             'pending'     => ['in_progress'],
             'in_progress' => ['completed'],
@@ -106,12 +138,20 @@ class OrderController extends Controller
         ]);
     }
 
-    // PUT /api/orders/{id}/cancel — cancel order [client only, hanya pending]
-    public function cancel($id)
+    #[OA\Put(
+        path: "/api/orders/{order}/cancel",
+        summary: "Batalkan pesanan",
+        tags: ["Orders"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "order", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Pesanan dibatalkan"),
+        ]
+    )]
+    public function cancel(Order $order)
     {
-        $order = Order::findOrFail($id);
-
-        // pastikan order ini milik client yang login
         if ($order->client_id !== Auth::id()) {
             return response()->json([
                 'success' => false,

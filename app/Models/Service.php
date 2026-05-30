@@ -20,6 +20,33 @@ class Service extends Model
         'price' => 'integer',
     ];
 
+    public function scopeFilter($query, array $filters)
+    {
+        $query->when($filters['category_id'] ?? null, function ($q, $categoryId) {
+            $q->where('category_id', $categoryId);
+        });
+
+        $query->when($filters['category'] ?? null, function ($q, $categorySlug) {
+            $q->whereHas('category', fn ($q) => $q->where('slug', $categorySlug));
+        });
+
+        $query->when($filters['search'] ?? null, function ($q, $search) {
+            $keyword = '%' . $search . '%';
+            $q->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', $keyword)
+                  ->orWhere('description', 'like', $keyword);
+            });
+        });
+
+        $query->when($filters['min_price'] ?? null, function ($q, $minPrice) {
+            $q->where('price', '>=', (int) $minPrice);
+        });
+
+        $query->when($filters['max_price'] ?? null, function ($q, $maxPrice) {
+            $q->where('price', '<=', (int) $maxPrice);
+        });
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

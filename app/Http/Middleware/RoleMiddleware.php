@@ -10,13 +10,13 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, string $role)
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = $request->user();
 
-        if ($user->role !== $role) {
+        if (!$user || $user->role !== $role) {
             return response()->json(
                 [
                     "success" => false,
-                    "message" => "Akses ditolak. Role tidak sesuai.",
+                    "message" => "Akses ditolak. Role tidak sesuai atau Anda belum login.",
                 ],
                 403,
             );

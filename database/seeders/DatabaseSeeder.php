@@ -7,121 +7,132 @@ use App\Models\Order;
 use App\Models\Review;
 use App\Models\Service;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
      */
     public function run(): void
     {
-        $client = User::updateOrCreate(
-            ['email' => 'client@example.com'],
-            [
-                'name' => 'Client Demo',
-                'password' => Hash::make('password'),
-                'role' => 'client',
-                'bio' => 'Mahasiswa yang mencari jasa freelance kampus.',
-            ],
-        );
+        // 1. Create Categories
+        $categories = [
+            ['name' => 'Design', 'slug' => 'design'],
+            ['name' => 'Programming', 'slug' => 'programming'],
+            ['name' => 'Writing', 'slug' => 'writing'],
+            ['name' => 'Video & Animation', 'slug' => 'video-animation'],
+            ['name' => 'Music & Audio', 'slug' => 'music-audio'],
+        ];
 
-        $freelancer = User::updateOrCreate(
-            ['email' => 'freelancer@example.com'],
+        foreach ($categories as $cat) {
+            Category::updateOrCreate(['slug' => $cat['slug']], $cat);
+        }
+
+        // 2. Create Freelancers
+        $freelancers = [
             [
-                'name' => 'Freelancer Demo',
-                'password' => Hash::make('password'),
+                'name' => 'Thoriq',
+                'email' => 'thoriq@test.com',
+                'password' => Hash::make('password123'),
                 'role' => 'freelancer',
-                'bio' => 'Freelancer kampus untuk desain, web, dan tugas digital.',
+                'bio' => 'UI/UX Designer & Web Developer Mahasiswa. Fokus di pengerjaan landing page dan desain interface yang rapi.',
             ],
+            [
+                'name' => 'Nadia Putri',
+                'email' => 'nadia@test.com',
+                'password' => Hash::make('password123'),
+                'role' => 'freelancer',
+                'bio' => 'Content Writer & Copywriter. Membantu tugas essay, artikel, dan copywriting campaign produk.',
+            ],
+            [
+                'name' => 'Bagas Wardana',
+                'email' => 'bagas@test.com',
+                'password' => Hash::make('password123'),
+                'role' => 'freelancer',
+                'bio' => 'Video Editor. Ahli dalam editing video seminar, tugas kuliah, dan konten TikTok/Instagram.',
+            ],
+        ];
+
+        foreach ($freelancers as $f) {
+            User::updateOrCreate(['email' => $f['email']], $f);
+        }
+
+        // 3. Create a Client
+        $client = User::updateOrCreate(
+            ['email' => 'client@test.com'],
+            [
+                'name' => 'Budi Santoso',
+                'email' => 'client@test.com',
+                'password' => Hash::make('password123'),
+                'role' => 'client',
+                'bio' => 'Mahasiswa aktif yang sering butuh bantuan jasa digital cepat.',
+            ]
         );
 
-        $categories = collect([
-            ['name' => 'Desain Grafis', 'slug' => 'desain-grafis'],
-            ['name' => 'Pemrograman', 'slug' => 'pemrograman'],
-            ['name' => 'Penerjemahan', 'slug' => 'penerjemahan'],
-            ['name' => 'Akademik', 'slug' => 'akademik'],
-        ])->mapWithKeys(fn (array $category) => [
-            $category['slug'] => Category::updateOrCreate(
-                ['slug' => $category['slug']],
-                ['name' => $category['name']],
-            ),
-        ]);
+        // 4. Create Services
+        $designCat = Category::where('slug', 'design')->first();
+        $writeCat = Category::where('slug', 'writing')->first();
+        $videoCat = Category::where('slug', 'video-animation')->first();
 
-        $websiteService = Service::updateOrCreate(
+        $thoriq = User::where('email', 'thoriq@test.com')->first();
+        $nadia = User::where('email', 'nadia@test.com')->first();
+        $bagas = User::where('email', 'bagas@test.com')->first();
+
+        $services = [
             [
-                'user_id' => $freelancer->id,
-                'title' => 'Pembuatan Website Portfolio',
-            ],
-            [
-                'category_id' => $categories['pemrograman']->id,
-                'description' => 'Website portfolio responsive untuk mahasiswa, organisasi, atau tugas akhir.',
-                'price' => 250000,
-                'image_url' => null,
+                'user_id' => $thoriq->id,
+                'category_id' => $designCat->id,
+                'title' => 'Desain Landing Page Portfolio',
+                'description' => 'Jasa pembuatan desain UI landing page portfolio mahasiswa. Hasil berupa file Figma yang siap didevelop.',
+                'price' => 150000,
                 'status' => 'active',
             ],
-        );
-
-        Service::updateOrCreate(
             [
-                'user_id' => $freelancer->id,
-                'title' => 'Desain Poster Event Kampus',
-            ],
-            [
-                'category_id' => $categories['desain-grafis']->id,
-                'description' => 'Desain poster digital untuk seminar, lomba, dan acara komunitas kampus.',
-                'price' => 75000,
-                'image_url' => null,
-                'status' => 'active',
-            ],
-        );
-
-        Service::updateOrCreate(
-            [
-                'user_id' => $freelancer->id,
-                'title' => 'Terjemahan Abstrak Indonesia Inggris',
-            ],
-            [
-                'category_id' => $categories['penerjemahan']->id,
-                'description' => 'Terjemahan abstrak, ringkasan, dan dokumen pendek Indonesia ke Inggris.',
+                'user_id' => $nadia->id,
+                'category_id' => $writeCat->id,
+                'title' => 'Jasa Penulisan Artikel / Blog',
+                'description' => 'Menulis artikel 500-1000 kata untuk tugas atau blog. Riset mendalam dan anti-plagiasi.',
                 'price' => 50000,
-                'image_url' => null,
                 'status' => 'active',
             ],
-        );
+            [
+                'user_id' => $bagas->id,
+                'category_id' => $videoCat->id,
+                'title' => 'Edit Video Tugas Seminar',
+                'description' => 'Editing video dokumentasi seminar atau tugas presentasi. Sudah termasuk subtitle dan backsound.',
+                'price' => 100000,
+                'status' => 'active',
+            ],
+        ];
 
-        $completedOrder = Order::firstOrCreate(
-            [
-                'service_id' => $websiteService->id,
-                'client_id' => $client->id,
-                'status' => 'completed',
-            ],
-            [
-                'note' => 'Butuh portfolio sederhana untuk daftar magang.',
-            ],
-        );
+        foreach ($services as $s) {
+            Service::updateOrCreate(['title' => $s['title'], 'user_id' => $s['user_id']], $s);
+        }
 
-        Order::firstOrCreate(
-            [
-                'service_id' => $websiteService->id,
-                'client_id' => $client->id,
-                'status' => 'pending',
-            ],
-            [
-                'note' => 'Mau diskusi tambahan halaman project.',
-            ],
-        );
+        // 5. Create some Orders & Reviews
+        $service1 = Service::first();
+        if ($service1) {
+            $order = Order::updateOrCreate(
+                ['client_id' => $client->id, 'service_id' => $service1->id],
+                [
+                    'client_id' => $client->id,
+                    'service_id' => $service1->id,
+                    'status' => 'completed',
+                    'note' => 'Butuh buat tugas akhir minggu depan.',
+                ]
+            );
 
-        Review::firstOrCreate(
-            ['order_id' => $completedOrder->id],
-            [
-                'rating' => 5,
-                'comment' => 'Hasilnya rapi, cepat, dan sesuai brief.',
-            ],
-        );
+            Review::updateOrCreate(
+                ['order_id' => $order->id],
+                [
+                    'order_id' => $order->id,
+                    'rating' => 5,
+                    'comment' => 'Hasilnya sangat memuaskan, desainnya modern dan rapi!',
+                ]
+            );
+        }
     }
 }
