@@ -6,6 +6,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\FreelancerController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -20,8 +21,10 @@ Route::prefix('auth')->group(function () {
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('currency', [CurrencyController::class, 'convert']);
 Route::get('services',        [ServiceController::class, 'index']);
-Route::get('services/{id}',   [ServiceController::class, 'show']);
-Route::get('services/{id}/reviews', [ReviewController::class, 'byService']);
+Route::get('services/{service}',   [ServiceController::class, 'show']);
+Route::get('services/{service}/reviews', [ReviewController::class, 'byService']);
+Route::get('freelancers', [FreelancerController::class, 'index']);
+Route::get('freelancers/{id}', [FreelancerController::class, 'show']);
 
 Route::middleware('auth:api')->group(function () {
 
@@ -30,8 +33,8 @@ Route::middleware('auth:api')->group(function () {
 
     Route::middleware('role:freelancer')->group(function () {
         Route::post('services',           [ServiceController::class, 'store']);
-        Route::put('services/{id}',       [ServiceController::class, 'update']);
-        Route::delete('services/{id}',    [ServiceController::class, 'destroy']);
+        Route::put('services/{service}',       [ServiceController::class, 'update']);
+        Route::delete('services/{service}',    [ServiceController::class, 'destroy']);
     });
 
     Route::get('orders', [OrderController::class, 'index']);
@@ -39,10 +42,10 @@ Route::middleware('auth:api')->group(function () {
     Route::post('orders', [OrderController::class, 'store'])
         ->middleware('role:client');
 
-    Route::put('orders/{id}/status', [OrderController::class, 'updateStatus'])
+    Route::put('orders/{order}/status', [OrderController::class, 'updateStatus'])
         ->middleware('role:freelancer');
 
-    Route::put('orders/{id}/cancel', [OrderController::class, 'cancel'])
+    Route::put('orders/{order}/cancel', [OrderController::class, 'cancel'])
         ->middleware('role:client');
 
     Route::post('reviews', [ReviewController::class, 'store'])
