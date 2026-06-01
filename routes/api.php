@@ -10,38 +10,39 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('auth')->group(function () {
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
+Route::prefix("auth")->group(function () {
+    Route::post("register", [AuthController::class, "register"]);
+    Route::post("login", [AuthController::class, "login"]);
 
-    Route::middleware('auth:api')->group(function () {
-        Route::get('profile', [AuthController::class, 'profile']);
-        Route::post('logout', [AuthController::class, 'logout']);
+    Route::middleware("auth:api")->group(function () {
+        Route::get("profile", [AuthController::class, "profile"]);
+        Route::post("logout", [AuthController::class, "logout"]);
     });
 });
 
 // ------------------------------------------------------------------
 // Publik: siapa pun bisa melihat daftar kategori & jasa
 // ------------------------------------------------------------------
-Route::get('categories', [CategoryController::class, 'index']);
+Route::get("categories", [CategoryController::class, "index"]);
 
-Route::get('services',        [ServiceController::class, 'index']);
-Route::get('services/{id}',   [ServiceController::class, 'show']);
+Route::get("services", [ServiceController::class, "index"]);
+Route::get("services/{id}", [ServiceController::class, "show"]);
 
 // ------------------------------------------------------------------
 // Protected: harus login (JWT)
 // ------------------------------------------------------------------
-Route::middleware('auth:api')->group(function () {
-
+Route::middleware("auth:api")->group(function () {
     // Upload gambar terpisah (pratinjau sebelum buat jasa)
     // Hanya freelancer – dijaga oleh RoleMiddleware di dalam controller
-    Route::post('services/upload-image', [ServiceController::class, 'uploadImage'])
-        ->middleware('role:freelancer');
+    Route::post("services/upload-image", [
+        ServiceController::class,
+        "uploadImage",
+    ])->middleware("role:freelancer");
 
     // CRUD jasa – hanya freelancer
-    Route::middleware('role:freelancer')->group(function () {
-        Route::post('services',           [ServiceController::class, 'store']);
-        Route::put('services/{id}',       [ServiceController::class, 'update']);
-        Route::delete('services/{id}',    [ServiceController::class, 'destroy']);
+    Route::middleware("role:freelancer")->group(function () {
+        Route::post("services", [ServiceController::class, "store"]);
+        Route::put("services/{id}", [ServiceController::class, "update"]);
+        Route::delete("services/{id}", [ServiceController::class, "destroy"]);
     });
 });
