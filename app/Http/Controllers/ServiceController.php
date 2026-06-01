@@ -10,46 +10,34 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use RuntimeException;
+use OpenApi\Attributes as OA;
 
 class ServiceController extends Controller
 {
-    // -----------------------------------------------------------------------
-    // GET /api/services
-    // Publik – semua role boleh mengakses. Mendukung filter & pencarian.
-    // -----------------------------------------------------------------------
+    #[OA\Get(
+        path: "/api/services",
+        summary: "Daftar jasa freelance",
+        tags: ["Services"],
+        parameters: [
+            new OA\Parameter(name: "search", in: "query", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "category", in: "query", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "category_id", in: "query", schema: new OA\Schema(type: "integer")),
+            new OA\Parameter(name: "min_price", in: "query", schema: new OA\Schema(type: "integer")),
+            new OA\Parameter(name: "max_price", in: "query", schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Daftar jasa"),
+        ]
+    )]
     public function index(Request $request): JsonResponse
     {
-        $query = Service::with(['user:id,name,avatar', 'category:id,name,slug'])
-            ->where('status', 'active');
-
-        // Filter by kategori
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
-        }
-
-        // Filter by kategori slug
-        if ($request->filled('category')) {
-            $query->whereHas('category', fn ($q) => $q->where('slug', $request->category));
-        }
-
-        // Pencarian by judul atau deskripsi
-        if ($request->filled('search')) {
-            $keyword = '%' . $request->search . '%';
-            $query->where(function ($q) use ($keyword) {
-                $q->where('title', 'like', $keyword)
-                  ->orWhere('description', 'like', $keyword);
-            });
-        }
-
-        // Filter harga
-        if ($request->filled('min_price')) {
-            $query->where('price', '>=', (int) $request->min_price);
-        }
-        if ($request->filled('max_price')) {
-            $query->where('price', '<=', (int) $request->max_price);
-        }
-
-        $services = $query->latest()->paginate(12);
+        $services = Service::with(['user:id,name,avatar', 'category:id,name,slug'])
+            ->withAvg('reviews as average_rating', 'rating')
+            ->withCount('reviews')
+            ->where('status', 'active')
+            ->filter($request->all())
+            ->latest()
+            ->paginate(12);
 
         return response()->json([
             'success' => true,
@@ -57,19 +45,23 @@ class ServiceController extends Controller
         ]);
     }
 
-    // -----------------------------------------------------------------------
-    // GET /api/services/{id}
-    // Publik – detail satu jasa beserta rata-rata rating.
-    // -----------------------------------------------------------------------
-    public function show(int $id): JsonResponse
+    #[OA\Get(
+        path: "/api/services/{service}",
+        summary: "Detail jasa",
+        tags: ["Services"],
+        parameters: [
+            new OA\Parameter(name: "service", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Detail jasa"),
+            new OA\Response(response: 404, description: "Jasa tidak ditemukan"),
+        ]
+    )]
+    public function show(Service $service): JsonResponse
     {
-        $service = Service::with([
-            'user:id,name,avatar,bio',
-            'category:id,name,slug',
-        ])
-            ->withAvg('reviews as average_rating', 'rating')
-            ->withCount('reviews')
-            ->findOrFail($id);
+        $service->load(['user:id,name,avatar,bio', 'category:id,name,slug'])
+            ->loadAvg('reviews as average_rating', 'rating')
+            ->loadCount('reviews');
 
         if ($service->status !== 'active') {
             return response()->json([
@@ -84,10 +76,32 @@ class ServiceController extends Controller
         ]);
     }
 
-    // -----------------------------------------------------------------------
-    // POST /api/services   [freelancer only]
-    // Membuat jasa baru. Gambar opsional; jika dikirim, di-upload ke Imgbb.
-    // -----------------------------------------------------------------------
+    #[OA\Post(
+        path: "/api/services",
+        summary: "Buat jasa baru",
+        tags: ["Services"],
+        security: [["bearerAuth" => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    required: ["category_id", "title", "description", "price"],
+                    properties: [
+                        new OA\Property(property: "category_id", type: "integer"),
+                        new OA\Property(property: "title", type: "string"),
+                        new OA\Property(property: "description", type: "string"),
+                        new OA\Property(property: "price", type: "integer"),
+                        new OA\Property(property: "image", type: "string", format: "binary"),
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "Jasa berhasil dibuat"),
+            new OA\Response(response: 403, description: "Akses ditolak"),
+        ]
+    )]
     public function store(Request $request, ImgbbService $imgbb): JsonResponse
     {
         $validated = $request->validate([
@@ -95,7 +109,7 @@ class ServiceController extends Controller
             'title'        => 'required|string|max:255',
             'description'  => 'required|string',
             'price'        => 'required|integer|min:1000',
-            'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // maks 5 MB
+            'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $imageUrl = null;
@@ -131,13 +145,21 @@ class ServiceController extends Controller
         ], 201);
     }
 
-    // -----------------------------------------------------------------------
-    // PUT /api/services/{id}   [freelancer, owner only]
-    // -----------------------------------------------------------------------
-    public function update(Request $request, int $id, ImgbbService $imgbb): JsonResponse
+    #[OA\Put(
+        path: "/api/services/{service}",
+        summary: "Update jasa",
+        tags: ["Services"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "service", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Jasa berhasil diperbarui"),
+            new OA\Response(response: 403, description: "Bukan milik owner"),
+        ]
+    )]
+    public function update(Request $request, Service $service, ImgbbService $imgbb): JsonResponse
     {
-        $service = Service::findOrFail($id);
-
         if ($service->user_id !== Auth::id()) {
             return response()->json([
                 'success' => false,
@@ -154,7 +176,6 @@ class ServiceController extends Controller
             'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        // Upload gambar baru jika ada
         if ($request->hasFile('image')) {
             try {
                 $validated['image_url'] = $imgbb->upload(
@@ -169,9 +190,7 @@ class ServiceController extends Controller
             }
         }
 
-        // Hapus key 'image' agar tidak masuk ke fillable
         unset($validated['image']);
-
         $service->update($validated);
 
         return response()->json([
@@ -181,13 +200,21 @@ class ServiceController extends Controller
         ]);
     }
 
-    // -----------------------------------------------------------------------
-    // DELETE /api/services/{id}   [freelancer, owner only]
-    // -----------------------------------------------------------------------
-    public function destroy(int $id): JsonResponse
+    #[OA\Delete(
+        path: "/api/services/{service}",
+        summary: "Hapus jasa",
+        tags: ["Services"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "service", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Jasa berhasil dihapus"),
+            new OA\Response(response: 403, description: "Bukan milik owner"),
+        ]
+    )]
+    public function destroy(Service $service): JsonResponse
     {
-        $service = Service::findOrFail($id);
-
         if ($service->user_id !== Auth::id()) {
             return response()->json([
                 'success' => false,
@@ -203,11 +230,15 @@ class ServiceController extends Controller
         ]);
     }
 
-    // -----------------------------------------------------------------------
-    // POST /api/services/upload-image   [freelancer only]
-    // Endpoint terpisah: upload gambar ke Imgbb, mengembalikan URL-nya saja.
-    // Berguna jika frontend ingin preview sebelum simpan form jasa.
-    // -----------------------------------------------------------------------
+    #[OA\Post(
+        path: "/api/services/upload-image",
+        summary: "Upload gambar saja",
+        tags: ["Services"],
+        security: [["bearerAuth" => []]],
+        responses: [
+            new OA\Response(response: 200, description: "URL gambar"),
+        ]
+    )]
     public function uploadImage(Request $request, ImgbbService $imgbb): JsonResponse
     {
         $request->validate([

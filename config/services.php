@@ -39,4 +39,8 @@ return [
         'api_key' => env('IMGBB_API_KEY'),
     ],
 
+    'frankfurter' => [
+        'url' => env('FRANKFURTER_URL', 'https://api.frankfurter.dev/v1'),
+    ],
+
 ];
