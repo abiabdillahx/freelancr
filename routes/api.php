@@ -8,6 +8,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FreelancerController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GatewayController;
 
 Route::prefix("auth")->group(function () {
     Route::post("register", [AuthController::class, "register"]);
@@ -62,3 +63,12 @@ Route::middleware("jwt.auth")->group(function () {
         "role:client",
     );
 });
+
+Route::prefix("gateway")
+    ->middleware("jwt.auth")
+    ->group(function () {
+        Route::get("currency", [GatewayController::class, "currency"]);
+        Route::get("services", [GatewayController::class, "services"]);
+        Route::get("orders", [GatewayController::class, "orders"]);
+        Route::get("categories", [GatewayController::class, "categories"]);
+    });
