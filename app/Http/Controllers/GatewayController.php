@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\RateLimiter;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use OpenApi\Attributes as OA;
+use App\Http\Controllers\CurrencyController;
+use App\Services\CurrencyService;
 
 class GatewayController extends Controller
 {
@@ -158,7 +160,7 @@ class GatewayController extends Controller
             "method" => $request->method(),
             "path" => $request->path(),
             "ip" => $request->ip(),
-            "user_id" => optional(JWTAuth::parseToken()->authenticate())->id,
+            "user_id" => auth()->id(),
         ]);
     }
 }

@@ -204,7 +204,17 @@ class AuthController extends Controller
     ]
     public function logout()
     {
-        JWTAuth::invalidate(JWTAuth::getToken());
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Token tidak valid atau sudah expired",
+                ],
+                401,
+            );
+        }
 
         return response()->json([
             "success" => true,
