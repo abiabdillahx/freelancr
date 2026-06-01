@@ -12,10 +12,8 @@ class CurrencyController extends Controller
 {
     private const SUPPORTED_CURRENCIES = ["IDR", "USD", "SGD", "JPY"];
 
-    public function convert(
-        Request $request,
-        CurrencyService $currency,
-    ): JsonResponse {
+    public function currency(Request $request, CurrencyService $currency)
+    {
         $validated = $request->validate([
             "amount" => "nullable|numeric|min:0",
             "base" => [
