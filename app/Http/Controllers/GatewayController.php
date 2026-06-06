@@ -13,6 +13,7 @@ use App\Services\CurrencyService;
 
 class GatewayController extends Controller
 {
+    // API Gateway 1
     #[
         OA\Get(
             path: "/api/gateway/currency",
@@ -53,6 +54,7 @@ class GatewayController extends Controller
         return app(CurrencyController::class)->convert($request, $currency);
     }
 
+    // API Gateway 2
     #[
         OA\Get(
             path: "/api/gateway/services",
@@ -80,6 +82,7 @@ class GatewayController extends Controller
         return app(ServiceController::class)->index($request);
     }
 
+    // API Gateway 3
     #[
         OA\Get(
             path: "/api/gateway/orders",
@@ -107,6 +110,7 @@ class GatewayController extends Controller
         return app(OrderController::class)->index($request);
     }
 
+    // API Gateway 4
     #[
         OA\Get(
             path: "/api/gateway/categories",
